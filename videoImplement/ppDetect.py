@@ -1,10 +1,12 @@
+# thank you pupilext authors!!!
+# (づ ￣ ³￣)づ
+
+
 import pypupilext as pp
 import cv2
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
-
-pp.PuReSt()
 
 #testPath = "/Users/honganh/Documents/nerd folder/smpf thing/implement/videoImplement/frames/left/frame0.bmp"
 testPath = "frames/left/frame0.bmp"
@@ -24,7 +26,7 @@ def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
 
 
 def detect(imagePath):
-    img = cv2.imread(testPath, cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
 
     pupilClass = pp.Pupil()
     assert pupilClass.confidence == -1
@@ -45,7 +47,7 @@ def detect(imagePath):
 
     resize = ResizeWithAspectRatio(img_plot, width=800)
 
-    return resize
+    return resize, pupil.outline_confidence, pupil.diameter()
 
 #fig = plt.figure(figsize=(20, 8))
 #ax1 = plt.subplot(1, 2, 1)

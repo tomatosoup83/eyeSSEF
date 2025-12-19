@@ -56,7 +56,7 @@ def videoToImages(video, folderName):
     while True:
         ret,frame = cam.read()
         if ret:
-            name = './frames/' + folderName +'/frame' + str(currentframe) + '.jpg'
+            name = './frames/' + folderName +'/frame' + str(currentframe) + '.bmp'
             dprint("Creating... " + name)
 
             cv2.imwrite(name, frame)
@@ -70,8 +70,10 @@ def videoToImages(video, folderName):
     dprint("All frames done!")
     # 3. turn images ito grayscale (actually i think this is part of the algorithm but meh)
     
-def pupilDetection():
+def pupilDetection(pathToImage):
     pass
+
+    
 
 def blinkDetection(image):
     pass

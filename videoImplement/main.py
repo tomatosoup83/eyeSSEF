@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 # make sure later u save the detected images into a folder
 
-pathToVideo = "../eyeVids/plr_video_1080p_60fps_1.mp4"
+pathToVideo = "../eyeVids/pupil2.mov"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
 confidenceThresh = 0.9
@@ -47,7 +47,7 @@ def resetFolder(folderName):
             os.makedirs(folderName)
         except OSError:
             dprint(f"Error: Creating folder '{folderName}'")
-
+    return folderName
 
 # split the video into multiple image files
 def videoToImages(video, folderName):
@@ -91,7 +91,7 @@ def pupilDetectionInFolder(folderPath):
         diameter.append(pupil_diameter)
         dprint(f"Showing image {newPath} with detected pupil...")
         # show the images continuously using cv2 window
-        cv2.imshow("Pupil Detection for " + folderPath, imgWithPupil)
+        cv2.imshow("Pupil Detection for " + pathToVideo, imgWithPupil)
         cv2.waitKey(1)  # Display each image for 1 ms
 
         # closes window after all images are shown
@@ -127,7 +127,9 @@ def saveDataToCSV(frameIDs, timestamps, diameters, confidences, outputPath):
     
     # return the pandas dataframe too if needed
     return df
-def plotResults(dataframe):
+def plotResults(dataframe, savePath=None, showPlot=True):
+    # clear previous plots
+    plt.clf()
     # plot data based on dataframe
     plt.figure(figsize=(12, 6))
     plt.subplot(2, 1, 1)
@@ -145,7 +147,11 @@ def plotResults(dataframe):
     plt.legend()
     
     plt.tight_layout()
-    plt.show()
+    if savePath:
+        plt.savefig(savePath)
+        dprint(f"Plot saved to '{savePath}'")
+    if showPlot:
+        plt.show()
 
 def preProcessData(df):
     # set rows with confidence < 1 to NaN
@@ -171,8 +177,14 @@ conf, diameter = pupilDetectionInFolder("frames/")
 
 
 timestamps = calculateTimeStamps(frameRate, totalFrames)
-csvDataPath = "./data/" + os.path.basename(pathToVideo).split('.')[0] + "_pupil_data.csv"
+dataFolderPath = resetFolder("data/"+os.path.basename(pathToVideo).split('.')[0])
+csvDataPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/raw.csv"
 df = saveDataToCSV(list(range(totalFrames)), timestamps, diameter, conf, csvDataPath)
+plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=False)
 df = preProcessData(df)
+# save the preprocessed data too
+csvPreprocessedPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/preprocessed.csv"
+df.to_csv(csvPreprocessedPath, index=False)
+#print(f"Preprocessed data saved to CSV at '{csvPreprocessedPath}'")
 print(df)
-plotResults(df)
+plotResults(df, savePath=dataFolderPath + "/processedPlot.png", showPlot=True)

@@ -5,12 +5,13 @@ import datetime
 import splitVideo
 import ppDetect
 import matplotlib.pyplot as plt
-
+import pandas as pd
 # make sure later u save the detected images into a folder
 
 pathToVideo = "../eyeVids/plr_video_1080p_60fps_1.mp4"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
+confidenceThresh = 0.9
 
 
 # print stuff with timestamp at the start cuz it looks nice
@@ -55,7 +56,7 @@ def videoToImages(video, folderName):
     # 2. convert the video into multiple .bmp files and store it in the tempImages folder
     cam = cv2.VideoCapture(video)
     currentframe = 0
-
+    frameRate = cam.get(cv2.CAP_PROP_FPS)
     while True:
         ret,frame = cam.read()
         if ret:
@@ -72,6 +73,9 @@ def videoToImages(video, folderName):
     cam.release()
     cv2.destroyAllWindows()    
     dprint("All frames done!")
+
+    return frameRate, currentframe
+
     # 3. turn images ito grayscale (actually i think this is part of the algorithm but meh)
     
 def pupilDetectionInFolder(folderPath):
@@ -94,30 +98,60 @@ def pupilDetectionInFolder(folderPath):
     cv2.destroyAllWindows()
     return conf, diameter
 
+def calculateTimeStamps(frameRate, totalFrames):
+    timePerFrame = 1.0 / frameRate
+    timestamps = [i * timePerFrame for i in range(totalFrames)]
+    return timestamps
 
-def plotResults(confidenceList, diameterList):
-    fig, ax1 = plt.subplots()
 
-    color = 'tab:blue'
-    ax1.set_xlabel('Frame Index')
-    ax1.set_ylabel('Outline Confidence', color=color)
-    ax1.plot(confidenceList, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
-    color = 'tab:red'
-    ax2.set_ylabel('Pupil Diameter', color=color)  # we already handled the x-label with ax1
-    ax2.plot(diameterList, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.title('Pupil Detection Results Over Frames')
-    plt.show()
 
 def blinkDetection(image):
     pass
 
+# save data to csv with Columns: 'frame_id', 'timestamp', 'diameter', 'confidence'
+def saveDataToCSV(frameIDs, timestamps, diameters, confidences, outputPath):
+    data = {
+        'frame_id': frameIDs,
+        'timestamp': timestamps,
+        'diameter': diameters,
+        'confidence': confidences
+    }
+    df = pd.DataFrame(data)
+    # Mark bad data points (confidence < 1)
+    df['is_bad_data'] = df['confidence'] < confidenceThresh
+    df.to_csv(outputPath, index=False)
+    dprint(f"Data saved to CSV at '{outputPath}'")
+    
+    # return the pandas dataframe too if needed
+    return df
+def plotResults(dataframe):
+    # plot data based on dataframe
+    plt.figure(figsize=(12, 6))
+    plt.subplot(2, 1, 1)
+    plt.plot(dataframe['timestamp'], dataframe['diameter'], label='Pupil Diameter (pixels)', color='blue')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Diameter (pixels)')
+    plt.title('Pupil Diameter Over Time')
+    plt.legend()
+    
+    plt.subplot(2, 1, 2)
+    plt.plot(dataframe['timestamp'], dataframe['confidence'], label='Confidence', color='green')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Confidence')
+    plt.title('Detection Confidence Over Time')
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.show()
+
+def preProcessData(df):
+    # set rows with confidence < 1 to NaN
+    dprint("Preprocessing data: setting diameters with confidence < 1 to NaN")
+    df.loc[df['confidence'] < confidenceThresh, 'diameter'] = float('nan')
+    return df
 
 # ENTRY POITN!!!
 
@@ -128,10 +162,17 @@ resetFolder("frames")
 #resetFolder("frames/right")
 #videoToImages(pathToLeft,"left")
 #videoToImages(pathToRight,"right")
-videoToImages(pathToVideo,"frames")
+frameRate, totalFrames = videoToImages(pathToVideo,"frames")
 
 #pupilDetectionInFolder("frames/left/")
 #pupilDetectionInFolder("frames/right/")
 conf, diameter = pupilDetectionInFolder("frames/")
 
-plotResults(conf, diameter)
+
+
+timestamps = calculateTimeStamps(frameRate, totalFrames)
+csvDataPath = "./data/" + os.path.basename(pathToVideo).split('.')[0] + "_pupil_data.csv"
+df = saveDataToCSV(list(range(totalFrames)), timestamps, diameter, conf, csvDataPath)
+df = preProcessData(df)
+print(df)
+plotResults(df)

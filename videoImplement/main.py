@@ -1,3 +1,11 @@
+# TODO
+# add a counter for processing iterations?
+# set data as bad if confidence < threshold
+# set data as bad IF the difference in pupil diameter between any 2 frames is >0.5mm (applies for 60fps)
+# do cubic spline interpolation to fill in bad data points
+
+
+
 import os
 import cv2
 import shutil
@@ -6,12 +14,15 @@ import splitVideo
 import ppDetect
 import matplotlib.pyplot as plt
 import pandas as pd
+from scipy.interpolate import CubicSpline
 # make sure later u save the detected images into a folder
 
-pathToVideo = "../eyeVids/pupil2.mov"
+pathToVideo = "../eyeVids/PLR_Calibration_R_1920x1080_30_3.mp4"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
 confidenceThresh = 0.9
+
+processingIteration = 0
 
 
 # print stuff with timestamp at the start cuz it looks nice
@@ -159,6 +170,11 @@ def preProcessData(df):
     df.loc[df['confidence'] < confidenceThresh, 'diameter'] = float('nan')
     return df
 
+def interpolateBadData(df):
+
+    pass
+
+
 # ENTRY POITN!!!
 
 resetFolder("videos")
@@ -186,5 +202,5 @@ df = preProcessData(df)
 csvPreprocessedPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/preprocessed.csv"
 df.to_csv(csvPreprocessedPath, index=False)
 #print(f"Preprocessed data saved to CSV at '{csvPreprocessedPath}'")
-print(df)
+print(type(df))
 plotResults(df, savePath=dataFolderPath + "/processedPlot.png", showPlot=True)

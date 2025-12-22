@@ -17,12 +17,13 @@ import pandas as pd
 from scipy.interpolate import CubicSpline
 # make sure later u save the detected images into a folder
 
-pathToVideo = "../eyeVids/PLR_Calibration_R_1920x1080_30_3.mp4"
+pathToVideo = "../eyeVids/PLR_Calibration_R_1920x1080_30_2.mp4"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
 confidenceThresh = 0.9
 
 processingIteration = 0
+pxToMm = 30 # pixels per mm for the current camera setup (change later if needed)
 
 
 # print stuff with timestamp at the start cuz it looks nice
@@ -115,14 +116,15 @@ def calculateTimeStamps(frameRate, totalFrames):
     return timestamps
 
 
-
+def getAverageOfColumn(dataframe, colName):
+    return dataframe[colName].mean()
 
 
 
 def blinkDetection(image):
     pass
 
-# save data to csv with Columns: 'frame_id', 'timestamp', 'diameter', 'confidence'
+# save data to csv with Columns: 'frame_id', 'timestamp', 'diameter', 'diameter_mm', 'confidence', 'is_bad_data'
 def saveDataToCSV(frameIDs, timestamps, diameters, confidences, outputPath):
     data = {
         'frame_id': frameIDs,
@@ -133,20 +135,25 @@ def saveDataToCSV(frameIDs, timestamps, diameters, confidences, outputPath):
     df = pd.DataFrame(data)
     # Mark bad data points (confidence < 1)
     df['is_bad_data'] = df['confidence'] < confidenceThresh
+    df['diameter_mm'] = df['diameter'] / pxToMm
     df.to_csv(outputPath, index=False)
     dprint(f"Data saved to CSV at '{outputPath}'")
     
     # return the pandas dataframe too if needed
     return df
-def plotResults(dataframe, savePath=None, showPlot=True):
+def plotResults(dataframe, savePath=None, showPlot=True, showMm=False):
     # clear previous plots
     plt.clf()
     # plot data based on dataframe
     plt.figure(figsize=(12, 6))
     plt.subplot(2, 1, 1)
-    plt.plot(dataframe['timestamp'], dataframe['diameter'], label='Pupil Diameter (pixels)', color='blue')
+    if showMm:
+        plt.plot(dataframe['timestamp'], dataframe['diameter_mm'], label='Pupil Diameter (mm)', color='blue')
+        plt.ylabel('Diameter (mm)')
+    else:
+        plt.plot(dataframe['timestamp'], dataframe['diameter'], label='Pupil Diameter (pixels)', color='blue')
+        plt.ylabel('Diameter (pixels)')
     plt.xlabel('Time (s)')
-    plt.ylabel('Diameter (pixels)')
     plt.title('Pupil Diameter Over Time')
     plt.legend()
     
@@ -170,9 +177,25 @@ def preProcessData(df):
     df.loc[df['confidence'] < confidenceThresh, 'diameter'] = float('nan')
     return df
 
-def interpolateBadData(df):
+def interpolateBadData(df, idx, col="diameter", window=4):
+    before = max(0, idx - window)
+    after = min(len(df) - 1, idx + window)
+     # get the x and y values for interpolation
+    x = []
+    y = []
+    for i in range(before, after + 1):
+        if not pd.isna(df.at[i, col]) and i != idx:
+            x.append(i)
+            y.append(df.at[i, col])
+    if len(x) < 2:
+        dprint(f"Not enough data points to interpolate at index {idx}")
+        return df  # not enough data to interpolate
+    cs = CubicSpline(x, y)
+    df.at[idx, col] = cs(idx)
+    dprint(f"Interpolated value at index {idx} for column '{col}'")
+    return df   
 
-    pass
+
 
 
 # ENTRY POITN!!!
@@ -202,5 +225,6 @@ df = preProcessData(df)
 csvPreprocessedPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/preprocessed.csv"
 df.to_csv(csvPreprocessedPath, index=False)
 #print(f"Preprocessed data saved to CSV at '{csvPreprocessedPath}'")
-print(type(df))
-plotResults(df, savePath=dataFolderPath + "/processedPlot.png", showPlot=True)
+#print(type(df))
+print(("Average pupil diameter (pixels): ", getAverageOfColumn(df, 'diameter')))
+plotResults(df, savePath=dataFolderPath + "/processedPlot.png", showPlot=True, showMm=True)

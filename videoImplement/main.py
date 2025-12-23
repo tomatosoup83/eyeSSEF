@@ -10,17 +10,17 @@ import os
 import cv2
 import shutil
 import datetime
-import splitVideo
-import ppDetect
+import scripts.others.splitVideo as splitVideo
+import scripts.detection.ppDetect as ppDetect
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.interpolate import CubicSpline
 # make sure later u save the detected images into a folder
 
-pathToVideo = "../eyeVids/PLR_Calibration_R_1920x1080_30_2.mp4"
+pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_1280x720_60_1.mp4"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
-confidenceThresh = 0.9
+confidenceThresh = 0.75
 
 processingIteration = 0
 pxToMm = 30 # pixels per mm for the current camera setup (change later if needed)
@@ -145,7 +145,7 @@ def plotResults(dataframe, savePath=None, showPlot=True, showMm=False):
     # clear previous plots
     plt.clf()
     # plot data based on dataframe
-    plt.figure(figsize=(12, 6))
+    plt.figure("Showing results for " + str(savePath),figsize=(12, 6))
     plt.subplot(2, 1, 1)
     if showMm:
         plt.plot(dataframe['timestamp'], dataframe['diameter_mm'], label='Pupil Diameter (mm)', color='blue')
@@ -171,60 +171,47 @@ def plotResults(dataframe, savePath=None, showPlot=True, showMm=False):
     if showPlot:
         plt.show()
 
-def preProcessData(df):
+# initial filtering: set data with confidence < threshold to NaN
+def preProcessFirstPass(df):
     # set rows with confidence < 1 to NaN
-    dprint("Preprocessing data: setting diameters with confidence < 1 to NaN")
+    dprint(f"Preprocessing data: setting diameters with confidence < {confidenceThresh} to NaN")
     df.loc[df['confidence'] < confidenceThresh, 'diameter'] = float('nan')
     return df
 
-def interpolateBadData(df, idx, col="diameter", window=4):
-    before = max(0, idx - window)
-    after = min(len(df) - 1, idx + window)
-     # get the x and y values for interpolation
-    x = []
-    y = []
-    for i in range(before, after + 1):
-        if not pd.isna(df.at[i, col]) and i != idx:
-            x.append(i)
-            y.append(df.at[i, col])
-    if len(x) < 2:
-        dprint(f"Not enough data points to interpolate at index {idx}")
-        return df  # not enough data to interpolate
-    cs = CubicSpline(x, y)
-    df.at[idx, col] = cs(idx)
-    dprint(f"Interpolated value at index {idx} for column '{col}'")
-    return df   
 
 
+def generateReport():
+    dprint("Running standalone pupil detection implementation...")
+    resetFolder("videos")
+    #splitEyes(pathToVideo, pathToLeft, pathToRight, 600)
+    resetFolder("frames")
+    #resetFolder("frames/left")
+    #resetFolder("frames/right")
+    #videoToImages(pathToLeft,"left")
+    #videoToImages(pathToRight,"right")
+    frameRate, totalFrames = videoToImages(pathToVideo,"frames")
+
+    #pupilDetectionInFolder("frames/left/")
+    #pupilDetectionInFolder("frames/right/")
+    conf, diameter = pupilDetectionInFolder("frames/")
+
+
+
+    timestamps = calculateTimeStamps(frameRate, totalFrames)
+    dataFolderPath = resetFolder("data/"+os.path.basename(pathToVideo).split('.')[0])
+    csvDataPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/raw.csv"
+    df = saveDataToCSV(list(range(totalFrames)), timestamps, diameter, conf, csvDataPath)
+    plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=False)
+    df = preProcessFirstPass(df)
+    # save the preprocessed data too
+    csvPreprocessedPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/firstPass.csv"
+    df.to_csv(csvPreprocessedPath, index=False)
+    #print(f"Preprocessed data saved to CSV at '{csvPreprocessedPath}'")
+    #print(type(df))
+    print(("Average pupil diameter (pixels): ", getAverageOfColumn(df, 'diameter')))
+    plotResults(df, savePath=dataFolderPath + "/firstPassPlot.png", showPlot=True, showMm=True)
 
 
 # ENTRY POITN!!!
-
-resetFolder("videos")
-#splitEyes(pathToVideo, pathToLeft, pathToRight, 600)
-resetFolder("frames")
-#resetFolder("frames/left")
-#resetFolder("frames/right")
-#videoToImages(pathToLeft,"left")
-#videoToImages(pathToRight,"right")
-frameRate, totalFrames = videoToImages(pathToVideo,"frames")
-
-#pupilDetectionInFolder("frames/left/")
-#pupilDetectionInFolder("frames/right/")
-conf, diameter = pupilDetectionInFolder("frames/")
-
-
-
-timestamps = calculateTimeStamps(frameRate, totalFrames)
-dataFolderPath = resetFolder("data/"+os.path.basename(pathToVideo).split('.')[0])
-csvDataPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/raw.csv"
-df = saveDataToCSV(list(range(totalFrames)), timestamps, diameter, conf, csvDataPath)
-plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=False)
-df = preProcessData(df)
-# save the preprocessed data too
-csvPreprocessedPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/preprocessed.csv"
-df.to_csv(csvPreprocessedPath, index=False)
-#print(f"Preprocessed data saved to CSV at '{csvPreprocessedPath}'")
-#print(type(df))
-print(("Average pupil diameter (pixels): ", getAverageOfColumn(df, 'diameter')))
-plotResults(df, savePath=dataFolderPath + "/processedPlot.png", showPlot=True, showMm=True)
+if __name__ == "__main__":
+    generateReport()

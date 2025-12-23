@@ -17,6 +17,7 @@ from main import dprint
 def madFilter(df):
     dprint("Third pass preprocessing: applying median absolute deviation filter")
     diameters = df['diameter_mm'].values
+    pixelsDiamters = df['diameter'].values
     n = len(diameters)
     for i in range(n):
         # determine the window of points to consider
@@ -39,7 +40,10 @@ def madFilter(df):
             if abs_dev > threshold:
                 dprint(f"Frame {i}: diameter {diameters[i]} deviates from median {median} by {abs_dev}, exceeding threshold {threshold}. Setting to NaN.")
                 diameters[i] = np.nan
+                pixelsDiamters[i] = np.nan
+                # mark as bad data in dataframe
                 df.at[i, 'is_bad_data'] = True
-    df['diameter'] = diameters
+    df['diameter_mm'] = diameters
+    df['diameter'] = pixelsDiamters
     return df
 

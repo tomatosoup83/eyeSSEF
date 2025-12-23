@@ -15,6 +15,8 @@ import scripts.detection.ppDetect as ppDetect
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.interpolate import CubicSpline
+
+#from scripts.preProcessing.firstPass import preProcessFirstPass
 # make sure later u save the detected images into a folder
 
 pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_1280x720_60_1.mp4"
@@ -171,12 +173,6 @@ def plotResults(dataframe, savePath=None, showPlot=True, showMm=False):
     if showPlot:
         plt.show()
 
-# initial filtering: set data with confidence < threshold to NaN
-def preProcessFirstPass(df):
-    # set rows with confidence < 1 to NaN
-    dprint(f"Preprocessing data: setting diameters with confidence < {confidenceThresh} to NaN")
-    df.loc[df['confidence'] < confidenceThresh, 'diameter'] = float('nan')
-    return df
 
 
 
@@ -201,15 +197,17 @@ def generateReport():
     dataFolderPath = resetFolder("data/"+os.path.basename(pathToVideo).split('.')[0])
     csvDataPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/raw.csv"
     df = saveDataToCSV(list(range(totalFrames)), timestamps, diameter, conf, csvDataPath)
-    plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=False)
-    df = preProcessFirstPass(df)
+    plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=True, showMm=True)
+
+    # first pass preprocessing
+    #df = preProcessFirstPass(df)
     # save the preprocessed data too
-    csvPreprocessedPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/firstPass.csv"
-    df.to_csv(csvPreprocessedPath, index=False)
+    #csvPreprocessedPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/firstPass.csv"
+    #df.to_csv(csvPreprocessedPath, index=False)
     #print(f"Preprocessed data saved to CSV at '{csvPreprocessedPath}'")
     #print(type(df))
     print(("Average pupil diameter (pixels): ", getAverageOfColumn(df, 'diameter')))
-    plotResults(df, savePath=dataFolderPath + "/firstPassPlot.png", showPlot=True, showMm=True)
+    #plotResults(df, savePath=dataFolderPath + "/firstPassPlot.png", showPlot=True, showMm=True)
 
 
 # ENTRY POITN!!!

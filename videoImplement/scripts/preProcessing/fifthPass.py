@@ -9,19 +9,20 @@ def averagePLRGraphs(df1, df2):
         dprint("Error: DataFrames have different lengths, cannot average")
         return None
     averaged_df = df1.copy()
-    diameters1 = df1['diameter'].values
-    diameters2 = df2['diameter'].values
-    averaged_diameters = []
-    for i in range(len(diameters1)):
-        d1 = diameters1[i]
-        d2 = diameters2[i]
+    diameters1_mm = df1['diameter_mm'].values
+    diameters2_mm = df2['diameter_mm'].values
+    averaged_diameters_mm = []
+    for i in range(len(diameters1_mm)):
+        d1 = diameters1_mm[i]
+        d2 = diameters2_mm[i]
         if np.isnan(d1) and np.isnan(d2):
-            averaged_diameters.append(np.nan)
+            averaged_diameters_mm.append(np.nan)
         elif np.isnan(d1):
-            averaged_diameters.append(d2)
+            averaged_diameters_mm.append(d2)
         elif np.isnan(d2):
-            averaged_diameters.append(d1)
+            averaged_diameters_mm.append(d1)
         else:
-            averaged_diameters.append((d1 + d2) / 2.0)
-    averaged_df['diameter'] = averaged_diameters
+            averaged_diameters_mm.append((d1 + d2) / 2.0)
+    averaged_df['diameter_mm'] = averaged_diameters_mm
+    averaged_df['diameter'] = np.array(averaged_diameters_mm) * pxToMm
     return averaged_df

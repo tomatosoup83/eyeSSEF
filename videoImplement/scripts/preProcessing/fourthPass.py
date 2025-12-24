@@ -97,4 +97,5 @@ def interpolateData(df, fps=60):
             i += 1
 
     df['diameter_mm'] = diameters
+    df['diameter'] = diameters * pxToMm
     return df

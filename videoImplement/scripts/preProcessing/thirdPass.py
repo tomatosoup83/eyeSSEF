@@ -16,6 +16,8 @@ from main import dprint
 
 def madFilter(df):
     dprint("Third pass preprocessing: applying median absolute deviation filter")
+    #orig_diameters = df['diameter_mm'].values.copy()
+    #diameters = orig_diameters.copy()
     diameters = df['diameter_mm'].values
     pixelsDiamters = df['diameter'].values
     n = len(diameters)

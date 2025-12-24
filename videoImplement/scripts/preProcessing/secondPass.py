@@ -26,12 +26,12 @@ def removeSusBio(df, fps=60):
 
     # remove based on diameter difference
     maxChange = 0.5  # threshold based on fps
-    diameters = df['diameter_mm'].values
+    orig = df['diameter_mm'].values.copy()
+    diameters = orig.copy()
     for i in range(1, len(diameters)):
-        if i < len(diameters) - 1:  # ensure i+1 is within bounds
-            if not np.isnan(diameters[i]) and not np.isnan(diameters[i+1]):
-                if abs(diameters[i] - diameters[i+1]) > maxChange:
-                    dprint(f"Frame {i}: diameter change {abs(diameters[i] - diameters[i+1])} exceeds max change {maxChange}. Setting to NaN.")
+            if not np.isnan(orig[i]) and not np.isnan(orig[i-1]):
+                if abs(orig[i] - orig[i-1]) > maxChange:
+                    dprint(f"Frame {i}: diameter change {abs(orig[i] - orig[i-1])} exceeds max change {maxChange}. Setting to NaN.")
                     diameters[i] = np.nan
                     pixelsDiamters[i] = np.nan
                     # mark as bad data in dataframe

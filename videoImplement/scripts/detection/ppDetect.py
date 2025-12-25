@@ -31,23 +31,33 @@ def detect(imagePath):
     pupilClass = pp.Pupil()
     assert pupilClass.confidence == -1
 
-    pure = pp.PuRe()
+    pure = pp.PuReST()
     pure.maxPupilDiameterMM = 7
 
     im_reized = img
     pupil = pure.runWithConfidence(im_reized)
-    data = pd.DataFrame([{'Outline Conf': pupil.outline_confidence, 'PupilDiameter': pupil.diameter()}])
+    diam = pupil.diameter()
+    data = pd.DataFrame([{'Outline Conf': pupil.outline_confidence, 'PupilDiameter': diam}])
     print(data)
 
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    img_plot = cv2.ellipse(img,
-                           (int(pupil.center[0]), int(pupil.center[1])),
-                           (int(pupil.minorAxis()/2), int(pupil.majorAxis()/2)), pupil.angle,
-                           0, 360, (0, 0, 255), 1)
+    img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    if diam is not None and diam >= 0:
+        img_plot = cv2.ellipse(
+            img_bgr,
+            (int(pupil.center[0]), int(pupil.center[1])),
+            (int(pupil.minorAxis()/2), int(pupil.majorAxis()/2)),
+            pupil.angle,
+            0,
+            360,
+            (0, 0, 255),
+            1,
+        )
+    else:
+        img_plot = img_bgr
 
     resize = ResizeWithAspectRatio(img_plot, width=800)
 
-    return resize, pupil.outline_confidence, pupil.diameter()
+    return resize, pupil.outline_confidence, diam
 
 #fig = plt.figure(figsize=(20, 8))
 #ax1 = plt.subplot(1, 2, 1)

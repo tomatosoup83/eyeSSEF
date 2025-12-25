@@ -72,7 +72,7 @@ def interpolate_column_cubic_only(data, column_name):
     return values
 
 
-def interpolate_dataframe(df):
+def interpolateData(df):
     """
     Interpolate NaN values in diameter and diameter_mm columns 
     using cubic spline interpolation.
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     print(f"  diameter_mm: {df['diameter_mm'].isna().sum()}\n")
     
     # Perform interpolation
-    df_interpolated = interpolate_dataframe(df)
+    df_interpolated = interpolateData(df)
     
     # Show NaN counts after interpolation
     print(f"\nNaN counts after interpolation:")

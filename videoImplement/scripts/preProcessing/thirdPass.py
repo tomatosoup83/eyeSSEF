@@ -14,6 +14,8 @@ import numpy as np
 from main import dprint
 #from scipy.interpolate import CubicSpline
 
+madMultiplier = 2.5
+
 def madFilter(df):
     dprint("Third pass preprocessing: applying median absolute deviation filter")
     #orig_diameters = df['diameter_mm'].values.copy()
@@ -36,7 +38,7 @@ def madFilter(df):
         if mad == 0:
             continue  # no variation in data
         scaled_mad = mad * 1.4826
-        threshold = 3 * scaled_mad
+        threshold = madMultiplier * scaled_mad
         if not np.isnan(diameters[i]):
             abs_dev = abs(diameters[i] - median)
             if abs_dev > threshold:

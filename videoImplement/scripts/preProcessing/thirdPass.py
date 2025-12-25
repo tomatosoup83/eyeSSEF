@@ -14,6 +14,8 @@ import numpy as np
 from main import dprint
 #from scipy.interpolate import CubicSpline
 
+madMultiplier = 2.5
+
 def madFilter(df):
     #we shld actively search for non nan neighbours instead of just using a fixed size window ig
     dprint("Third pass preprocessing: applying median absolute deviation filter")

@@ -19,13 +19,14 @@ from scipy.interpolate import CubicSpline
 #from scripts.preProcessing.firstPass import preProcessFirstPass
 # make sure later u save the detected images into a folder
 
-pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_1280x720_60_1.mp4"
+pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_640x480_90_6.mp4"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
 confidenceThresh = 0.75
 
 processingIteration = 0
-pxToMm = 30 # pixels per mm for the current camera setup (change later if needed)
+pxToMm = 30 # for 1080p
+
 
 
 # print stuff with timestamp at the start cuz it looks nice
@@ -71,6 +72,7 @@ def videoToImages(video, folderName):
     cam = cv2.VideoCapture(video)
     currentframe = 0
     frameRate = cam.get(cv2.CAP_PROP_FPS)
+    print(f"Video frame rate: {frameRate} fps")
     while True:
         ret,frame = cam.read()
         if ret:
@@ -197,6 +199,7 @@ def generateReport():
     dataFolderPath = resetFolder("data/"+os.path.basename(pathToVideo).split('.')[0])
     csvDataPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/raw.csv"
     df = saveDataToCSV(list(range(totalFrames)), timestamps, diameter, conf, csvDataPath)
+    print(("Average pupil diameter (pixels): ", getAverageOfColumn(df, 'diameter')))
     plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=True, showMm=True)
 
     # first pass preprocessing
@@ -206,7 +209,6 @@ def generateReport():
     #df.to_csv(csvPreprocessedPath, index=False)
     #print(f"Preprocessed data saved to CSV at '{csvPreprocessedPath}'")
     #print(type(df))
-    print(("Average pupil diameter (pixels): ", getAverageOfColumn(df, 'diameter')))
     #plotResults(df, savePath=dataFolderPath + "/firstPassPlot.png", showPlot=True, showMm=True)
 
 

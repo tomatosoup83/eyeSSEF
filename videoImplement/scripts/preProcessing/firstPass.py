@@ -1,4 +1,6 @@
-from main import dprint, confidenceThresh
+from main import dprint
+
+confidenceThresh = 1.0  # threshold for confidence filtering
 
 def confidenceFilter(df):
     # set rows with confidence < 1 to NaN

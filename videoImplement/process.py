@@ -5,9 +5,11 @@ from main import dprint, confidenceThresh, pxToMm, plotResults
 from scripts.preProcessing.secondPass import removeSusBio
 from scripts.preProcessing.thirdPass import madFilter
 #from scripts.preProcessing.fourthPass import interpolateData
-from scripts.preProcessing.fourthPassNoBoundaryCheck import interpolateData
+#from scripts.preProcessing.fourthPassNoBoundaryCheck import interpolateData
+from scripts.preProcessing.fourthPassCubicOnly import interpolateData
 from scripts.preProcessing.fifthPass import averagePLRGraphs   
 from scripts.preProcessing.firstPass import confidenceFilter
+from scripts.preProcessing.sixthPass import rollingAverage
 
 # load sample data
 dprint("Loading sample pupil data for testing preprocessing scripts")
@@ -48,8 +50,18 @@ def doProcessing(df, fps=60, saveBeforeInterpolation=False, savePathBeforeInterp
         
 
     # fourth pass
-    df = interpolateData(df, fps)
+    #df = interpolateData(df, fps)
+    df = interpolateData(df)
     dprint("After fourth pass (interpolateData):")
+    dprint(df.head())
+
+
+    # fifth pass
+    # skipping averagePLRGraphs here as we only have one dataset
+
+    # sixth pass
+    df = rollingAverage(df)
+    dprint("After sixth pass (rollingAverage):")
     dprint(df.head())
 
     if saveBeforeInterpolation: 
@@ -58,24 +70,24 @@ def doProcessing(df, fps=60, saveBeforeInterpolation=False, savePathBeforeInterp
         return df
 
 
-#dprint("Processing first dataset")
-#df1_processed = doProcessing(df1, fps=60)
+dprint("Processing first dataset")
+df1_processed = doProcessing(df1, fps=60)
 # get stats before interpolation
-df1_processed, df1_beforeInterpolation, totalPoints, badPoints, badPercentage = doProcessing(df1, fps=60, saveBeforeInterpolation=True, savePathBeforeInterpolation=df1Path + "/beforeInterpolation.csv")
-dprint(f"Before interpolation - Total data points: {totalPoints}, Bad data points: {badPoints}, Bad percentage: {badPercentage:.2f}%")
+#df1_processed, df1_beforeInterpolation, totalPoints, badPoints, badPercentage = doProcessing(df1, fps=60, saveBeforeInterpolation=True, savePathBeforeInterpolation=df1Path + "/beforeInterpolation.csv")
+#dprint(f"Before interpolation - Total data points: {totalPoints}, Bad data points: {badPoints}, Bad percentage: {badPercentage:.2f}%")
 
 # save to csv
-#csvPreprocessedPath = "data/" + os.path.basename(df1Path).split('.')[0] + "/processed.csv"
-#df1_processed.to_csv(csvPreprocessedPath, index=False)
-#dprint(f"Processed data saved to CSV at '{csvPreprocessedPath}'")
+csvPreprocessedPath = "data/" + os.path.basename(df1Path).split('.')[0] + "/processed.csv"
+df1_processed.to_csv(csvPreprocessedPath, index=False)
+dprint(f"Processed data saved to CSV at '{csvPreprocessedPath}'")
 
 # plotting results
-#dataFolderPath = "data/" + os.path.basename(df1Path).split('.')[0]
-#plotResults(df1_processed, savePath=dataFolderPath + "/processedPlot.png", showPlot=True, showMm=True)
+dataFolderPath = "data/" + os.path.basename(df1Path).split('.')[0]
+plotResults(df1_processed, savePath=dataFolderPath + "/processedPlot.png", showPlot=True, showMm=True)
 
 # plot non interpolated data for comparison
-dataFolderPath = "data/" + os.path.basename(df1Path).split('.')[0]
-plotResults(df1_beforeInterpolation, savePath=dataFolderPath + "/beforeInterpolationPlot.png", showPlot=True, showMm=True)
+#dataFolderPath = "data/" + os.path.basename(df1Path).split('.')[0]
+#plotResults(df1_beforeInterpolation, savePath=dataFolderPath + "/beforeInterpolationPlot.png", showPlot=True, showMm=True)
 
 #dprint("Processing second dataset")
 #df2_processed = doProcessing(df2, fps=30)

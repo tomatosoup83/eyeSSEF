@@ -1,76 +1,60 @@
 import pandas as pd
 import numpy as np
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, interp1d
 
-def interpolate_column_cubic_only(data, column_name):
-    """
-    Interpolate NaN values in a column using cubic spline interpolation 
-    with 4 nearest neighbors (2 before, 2 after the gap).
-    
-    Args:
-        data: pandas Series with NaN values
-        column_name: name of the column (for logging)
-    
-    Returns:
-        interpolated pandas Series
-    """
-    values = data.copy()
-    n = len(values)
-    i = 0
-    
-    while i < n:
-        if np.isnan(values[i]):
-            # Found start of a NaN gap
-            start = i
-            
-            # Find end of the gap
-            while i < n and np.isnan(values[i]):
-                i += 1
-            end = i - 1
-            gapSize = end - start + 1
-            
-            # Collect 4 valid points (expand search if needed)
-            x_points = []
-            y_points = []
-            
-            # Find 2 valid points before the gap
-            before_count = 0
-            k = start - 1
-            while before_count < 2 and k >= 0:
-                if not np.isnan(values[k]):
-                    x_points.append(k)
-                    y_points.append(values[k])
-                    before_count += 1
-                k -= 1
-            
-            # Find 2 valid points after the gap
-            after_count = 0
-            k = end + 1
-            while after_count < 2 and k < n:
-                if not np.isnan(values[k]):
-                    x_points.append(k)
-                    y_points.append(values[k])
-                    after_count += 1
-                k += 1
-            
-            # Only interpolate if we have 4 valid boundary points
-            if len(x_points) >= 4:
-                # Sort points by x index to ensure strictly increasing order
-                sorted_pairs = sorted(zip(x_points, y_points))
-                x_points = [p[0] for p in sorted_pairs]
-                y_points = [p[1] for p in sorted_pairs]
-                
-                cs = CubicSpline(x_points, y_points)
-                for j in range(start, end + 1):
-                    values[j] = cs(j)
-                print(f"  {column_name} - Frames {start} to {end}: cubic spline interpolation (gap size: {gapSize}, neighbors at: {x_points})")
-            else:
-                print(f"  {column_name} - Frames {start} to {end}: skipped (insufficient neighbors: {len(x_points)} < 4)")
-        else:
-            i += 1
-    
-    return values
+def linear_interpolation(df, fps=60, max_gap_ms=400): #max 500ms
+    df_interp = df.copy()
+    frame_time_ms = 1000 / fps
 
+    for col in ['diameter', 'diameter_mm']: #u change it to wtv your data is im not sure abt this one
+        if col in df.column:
+            values = df[col].values.copy()
+            n = len(values)
+
+            i = 0
+            while i < n:
+                if np.isnan(values[i]):
+                    start = i
+
+                    #find gap end
+                    while i < n and np.isnan(values[i]):
+                        i += 1
+                    end = i - 1
+
+                    gap_duration_ms = (end - start + 1) * frame_time_ms
+
+                    #interpolate if gap < max_gap_ms
+                    if gap_duration_ms <= max_gap_ms:
+                        #find valid neighbours
+                        before_idx = start - 1
+                        after_idx = end + 1
+
+                        if before_idx >= 0 and after_idx < n:
+                            if not np.isnan(values[before_idx]) and not np.isnan(values[after_idx]):
+                                before_val = values[before_idx]
+                                after_val = values[after_idx]
+
+                                for j in range(start, end + 1):
+                                    t = (j - before_idx) / (after_idx - before_idx)
+                                    values[j] = (1 - t) * before_val + t * after_val
+
+                                print(f"Frames {start} - {end}: Linear interpolated {gap_duration_ms}")
+                            else:
+                                break
+                        else:
+                            break
+                    else: 
+                        break
+                else:
+                    i += 1
+
+        df_temp = pd.DataFrame({col: values})
+        df_temp[col] = df_temp[col].interpolate(method = 'linear', limit_direction = 'both')
+        values = df_temp[col].values
+
+        df_interp[col] = values
+
+    return df_interp
 
 def interpolateData(df):
     """

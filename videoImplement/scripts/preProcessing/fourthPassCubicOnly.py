@@ -1,14 +1,19 @@
 import pandas as pd
 import numpy as np
 from scipy.interpolate import CubicSpline, interp1d
+from main import dprint
 
-def linear_interpolation(df, fps=60, max_gap_ms=400): #max 500ms
+def linear_interpolation(df: pd.DataFrame, fps=60, max_gap_ms=400): #max 500ms
     df_interp = df.copy()
     frame_time_ms = 1000 / fps
+    
+    # maximum consecutive NaNs (in frames) allowed to be filled
+    N_max = int(max_gap_ms / frame_time_ms)
 
-    for col in ['diameter', 'diameter_mm']: #u change it to wtv your data is im not sure abt this one
-        if col in df.column:
-            values = df[col].values.copy()
+    for col in ['diameter', 'diameter_mm']: # adjust to your column names if needed
+        if col in df.columns:
+            # Ensure numeric dtype so np.isnan works reliably
+            values = pd.to_numeric(df[col], errors='coerce').values.copy()
             n = len(values)
 
             i = 0
@@ -38,18 +43,28 @@ def linear_interpolation(df, fps=60, max_gap_ms=400): #max 500ms
                                     t = (j - before_idx) / (after_idx - before_idx)
                                     values[j] = (1 - t) * before_val + t * after_val
 
-                                print(f"Frames {start} - {end}: Linear interpolated {gap_duration_ms}")
+                                dprint(f"Frames {start} - {end}: Linear interpolated {gap_duration_ms}")
+                                # advance past this gap
+                                i = end + 1
+                                continue
                             else:
-                                break
+                                dprint(f"Frames {start} - {end}: skipped (missing numeric neighbor)")
+                                i = end + 1
+                                continue
                         else:
-                            break
+                            dprint(f"Frames {start} - {end}: skipped (gap touches boundary)")
+                            i = end + 1
+                            continue
                     else: 
-                        break
+                        dprint(f"Frames {start} - {end}: skipped (gap {gap_duration_ms} ms exceeds {max_gap_ms} ms cap)")
+                        i = end + 1
+                        continue
                 else:
                     i += 1
 
+        # Apply pandas interpolation with an explicit frame limit to enforce time cap
         df_temp = pd.DataFrame({col: values})
-        df_temp[col] = df_temp[col].interpolate(method = 'linear', limit_direction = 'both')
+        df_temp[col] = df_temp[col].interpolate(method='linear', limit=N_max, limit_direction='both')
         values = df_temp[col].values
 
         df_interp[col] = values
@@ -67,16 +82,20 @@ def interpolateData(df):
     Returns:
         DataFrame with interpolated values
     """
-    print("Interpolating NaN values using cubic spline (4 nearest neighbors)...\n")
-    
-    df_interpolated = df.copy()
-    
-    print("Processing 'diameter' column:")
-    df_interpolated['diameter'] = interpolate_column_cubic_only(df['diameter'], 'diameter')
-    
-    print("\nProcessing 'diameter_mm' column:")
-    df_interpolated['diameter_mm'] = interpolate_column_cubic_only(df['diameter_mm'], 'diameter_mm')
-    
+    #print("Interpolating NaN values using cubic spline (4 nearest neighbors)...\n")
+    #
+    #df_interpolated = df.copy()
+    #
+    #print("Processing 'diameter' column:")
+    ##df_interpolated['diameter'] = interpolate_column_cubic_only(df['diameter'], 'diameter')
+    #df_interpolated['diameter'] = linear_interpolation(df[['diameter']], fps=60, max_gap_ms=400)['diameter']
+    #
+    #print("\nProcessing 'diameter_mm' column:")
+    #df_interpolated['diameter_mm'] = interpolate_column_cubic_only(df['diameter_mm'], 'diameter_mm')
+
+    dprint("Interpolating NaN values using linear interpolation (max gap 400ms)...")
+    df_interpolated = linear_interpolation(df, fps=60, max_gap_ms=400)
+    dprint("Interpolation completed.")    
     return df_interpolated
 
 

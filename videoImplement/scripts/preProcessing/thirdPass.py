@@ -22,14 +22,25 @@ def madFilter(df):
     #orig_diameters = df['diameter_mm'].values.copy()
     #diameters = orig_diameters.copy()
     diameters = df['diameter_mm'].values
-    pixelsDiamters = df['diameter'].values
+    pixelsDiameters = df['diameter'].values
     
     n = len(diameters)
+    before_nan_mm = np.isnan(diameters).sum()
+    before_nan_px = np.isnan(pixelsDiameters).sum()
+    dprint(f"Series length: {n}. Initial NaNs — diameter_mm={before_nan_mm}, diameter={before_nan_px}")
+
+    # activity counters
+    processed_cnt = 0
+    skipped_nan_cnt = 0
+    insufficient_window_cnt = 0
+    mad_zero_cnt = 0
+    removed_cnt = 0
     window_size = 5 #might change to 7
     neighbours_cnt = window_size // 2
     
     for i in range(n):
         if np.isnan(diameters[i]):
+            skipped_nan_cnt += 1
             continue # skip alr removed points
             
         # determine the window of points to consider
@@ -71,6 +82,8 @@ def madFilter(df):
                 break
 
         if len(window_values) < 4: #raise the threshold
+            insufficient_window_cnt += 1
+            dprint(f"Frame {i}: insufficient neighbours ({len(window_values)} collected), skipping")
             continue
 
         #calc median
@@ -79,6 +92,8 @@ def madFilter(df):
         mad = np.median(abs_devs)
 
         if mad == 0:
+            mad_zero_cnt += 1
+            dprint(f"Frame {i}: MAD=0 (flat local region), skipping")
             continue #no variation
 
         #scale MAD to estimate SD
@@ -100,12 +115,16 @@ def madFilter(df):
             if abs(diameters[i] - avg_neighbour) > threshold:
                 is_isolated_spike = True
 
-        #If current point is an outlier AND looks like an isolated spike
+        #If current point is an outlier OR!!! looks like an isolated spike
         if cur_deviation > threshold or is_isolated_spike:
-            dprint(f"Frame {i}: diameter {diameters[i]} deviates from median {window_median} by {cur_deviation}, exceeding threshold {threshold}. Setting to NaN.")
+            reason = "isolated spike" if is_isolated_spike else "MAD outlier"
+            dprint(f"Frame {i}: {reason}. value={diameters[i]}, median={window_median}, |dev|={cur_deviation}, threshold={threshold}. Setting to NaN.")
             diameters[i] = np.nan
             pixelsDiameters[i] = np.nan
             df.at[i, 'is_bad_data'] = True
+            removed_cnt += 1
+        else:
+            processed_cnt += 1
 
         #
         #if len(window) < 3:
@@ -126,6 +145,14 @@ def madFilter(df):
                 # mark as bad data in dataframe
                 #df.at[i, 'is_bad_data'] = True
     df['diameter_mm'] = diameters
-    df['diameter'] = pixelsDiamters
+    df['diameter'] = pixelsDiameters
+    after_nan_mm = np.isnan(diameters).sum()
+    after_nan_px = np.isnan(pixelsDiameters).sum()
+    dprint(
+        f"Third pass summary: processed={processed_cnt}, skipped_nan={skipped_nan_cnt}, insufficient_window={insufficient_window_cnt}, mad_zero={mad_zero_cnt}, removed={removed_cnt}"
+    )
+    dprint(
+        f"NaNs after filtering — diameter_mm={after_nan_mm}, diameter={after_nan_px}"
+    )
     return df
 

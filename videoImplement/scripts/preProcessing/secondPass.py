@@ -75,7 +75,7 @@ def removeSusBio(df, fps):
                 blink_len = blink_end - blink_start + 1
 
                 #check if looks like a blink (v-shape or flipped v-shape wtv)
-                if blink_len >= 3 and blink_len <= int(fps * 0.5) #acc to stein blinks r usually below <200ms but can go up to 500ms, so i just a 500ms threshold here
+                if blink_len >= 3 and blink_len <= int(fps * 0.5): #acc to stein blinks r usually below <200ms but can go up to 500ms, so i just a 500ms threshold here
                     #extract blink segment
                     segment = diameters[blink_start:blink_end+1]
 
@@ -92,7 +92,7 @@ def removeSusBio(df, fps):
                                 #mark blink frames as bad
                                 for k in range(blink_start, blink_end + 1):
                                     diameters[k] = np.nan
-                                    pixelDiameters[k] = np.nan
+                                    pixelsDiameters[k] = np.nan
                                     df.at[k, 'is_bad_data'] = True
 
                                 i = blink_end + 1 #skip past the blink
@@ -101,12 +101,12 @@ def removeSusBio(df, fps):
                 #if not a blink, just mark the rapid change as noise = bad
                 dprint(f"Frame {i}: change {change} exceeds max change {maxChange}")
                 diameters[i] = np.nan
-                pixelDiameters[i] = np.nan
+                pixelsDiameters[i] = np.nan
                 df.at[i, 'is_bad_data'] = True
 
         i += 1
         
                 
     df['diameter_mm'] = diameters
-    df['diameter'] = pixelsDiamters
+    df['diameter'] = pixelsDiameters
     return df

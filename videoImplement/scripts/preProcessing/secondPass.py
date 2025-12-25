@@ -37,31 +37,75 @@ def removeSusBio(df, fps):
     #                # mark as bad data in dataframe
     #                df.at[i, 'is_bad_data'] = True
 
-    for i in range(1, len(diameters) - 1): #1 -> n - 2
-        if (not np.isnan(diameters[i]) and
-            not np.isnan(diameters[i - 1]) and
-            not np.isnan(diameters[i + 1])):
+    n = len(diameters)
+    i = 1
+    while i < n:
+        if not np.isnan(diameters[i]) and not np.isnan(diameters[i - 1]):
+            change = abs(diameters[i] - diameters[i - 1])
 
-            change_from_prev = abs(diameters[i] - diameters[i - 1])
-            change_from_next = abs(diameters[i] - diameters[i + 1])
+            if change > maxChange:
+                #round a rapid change -> sus -> check if its part of a blink pattern 
+                blink_start = i - 1
+                blink_end = i
 
-            #if current frame is an outlier compared to its neighbours
-            if change_from_prev > maxChange and change_from_next > maxChange:
-                #current frame is sus
-                dprint(f"Frame {i} is outlier, diameter change w.r.t neighbours exceeds max change")
+                #try to go backwards to find start of blink
+                j = blink_start - 1
+                while j >= 0 and not np.isnan(diameters[j]):
+                    if j > 0 and not np.isnan(diameters[j - 1]):
+                        if abs(diameters[j] - diameters[j - 1]) > maxChange:
+                            blink_start = j
+                            j -= 1
+                        else:
+                            break
+                    else:
+                        break
+
+                #try to go forward to find end of blink
+                j = blink_end + 1
+                while j < n and not np.isnan(diameters[j]):
+                    if j < n-1 and not np.isnan(diameters[j + 1]):
+                        if abs(diameters[j] - diameters[j + 1]) > maxChange:
+                            blink_end = j
+                            j += 1 
+                        else:
+                            break
+                    else:
+                        break
+
+                blink_len = blink_end - blink_start + 1
+
+                #check if looks like a blink (v-shape or flipped v-shape wtv)
+                if blink_len >= 3 and blink_len <= int(fps * 0.5) #acc to stein blinks r usually below <200ms but can go up to 500ms, so i just a 500ms threshold here
+                    #extract blink segment
+                    segment = diameters[blink_start:blink_end+1]
+
+                    #check shape (using local min)
+                    if len(segment) >= 3:
+                        min_idx = np.argmin(segment)
+
+                        #valid v shape if minimum is not at edges
+                        if 0 < min_idx < len(segment) - 1:
+                            amplitude = max(segment[0], segment[-1]) - segment[min_idx]
+                            if amplitude > 0.5 * (fps / 60):
+                                dprint(f"Frames {blink_start}-{blink_end}: Detected blink")
+
+                                #mark blink frames as bad
+                                for k in range(blink_start, blink_end + 1):
+                                    diameters[k] = np.nan
+                                    pixelDiameters[k] = np.nan
+                                    df.at[k, 'is_bad_data'] = True
+
+                                i = blink_end + 1 #skip past the blink
+                                continue
+        
+                #if not a blink, just mark the rapid change as noise = bad
+                dprint(f"Frame {i}: change {change} exceeds max change {maxChange}")
                 diameters[i] = np.nan
                 pixelDiameters[i] = np.nan
-                #mark as bad data in dataframe
                 df.at[i, 'is_bad_data'] = True
-            elif change_from_prev > maxChange and change_from_next <= maxChange:
-                #previous frame might be the outlier
-                if i > 1 and not np.isnan(diameters[i - 2]):
-                    change_prev_to_prev2 = abs(diameters[i - 1] - diameters[i - 2])
-                    if change_prev_to_prev2 > maxChange
-                        dprint(f"Frame {i - 1} is outlier, diameter change w.r.t neighbours exceeds max change")
-                        diameters[i - 1] = np.nan
-                        pixel_diameters[i - 1] = np.nan
-                        df.at[i - 1, 'is_bad_data'] = True
+
+        i += 1
+        
                 
     df['diameter_mm'] = diameters
     df['diameter'] = pixelsDiamters

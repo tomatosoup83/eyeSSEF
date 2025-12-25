@@ -112,8 +112,14 @@ def madFilter(df):
         if len(immediate_neighbours) >= 1:
             #check if current pt is very different from its immediate neighbours
             avg_neighbour = np.mean(immediate_neighbours)
-            if abs(diameters[i] - avg_neighbour) > threshold:
-                is_isolated_spike = True
+            neighbour_threshold = 2 * scaled_mad #stricter threshold for immediate neighbours
+            if abs(diameters[i] - avg_neighbour) > neighbour_threshold:
+                #additional check : are the immediate neighbours consistent with each other
+                neighbour_diff = abs(immediate_neighbours[0] - immediate_neighbours[1])
+                cur_to_neighbour_diff = abs(diameters[i] - avg_neighbour)
+
+                if neighbour_diff < scaled_mad and cur_to_neighbour_diff > neighbour_threshold:
+                    is_isolated_spike = True
 
         #If current point is an outlier OR!!! looks like an isolated spike
         if cur_deviation > threshold or is_isolated_spike:

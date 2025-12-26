@@ -1,9 +1,12 @@
 # sixth pass
-# Use a 3-point moving average to smooth the graph out (basically remove value at x with the average of values at x-1, x and x +1 
+# use savitzky-golay filter 
 
+import numpy as np
 import pandas as pd
 from main import dprint
+from scipy.signal import savgol_filter
 
+"""
 def rollingAverage(dataframe):
     dprint("Starting sixth pass preprocessing...")
     smoothedDiameters = []
@@ -30,3 +33,65 @@ def rollingAverage(dataframe):
     dataframe['diameter_mm'] = smoothedDiameters_mm
     dprint("Sixth pass preprocessing completed.")
     return dataframe
+"""
+
+
+def savgolSmoothing(dataframe, fps=60):
+
+    n_points = len(dataframe)
+    diameters = dataframe['diameter'].values.copy()
+    diameters_mm = dataframe['diameter_mm'].values.copy()
+
+    #handle nan bc savgol cant (safety feature, all nan shld alr be taken care of during the 4th pass)
+    if np.any(np.isnan(diameters)):
+        diameters = pd.Series(diameters).interpolate(method = 'linear', limit_direction = 'both').values
+    if np.any(np.isnan(diameters_mm)):
+        diameters_mm = pd.Series(diameters_mm).interpolate(method = 'linear', limit_direction = 'both').values
+
+    #calc signal properties
+    signad_std = np.std(diameters_mm)
+    signal_range = np.max(diameters_mm) - np.min(diameters_mm)
+
+    #adaptive window size based on fps and signal properties
+    target_window_ms = 150 
+    window_frames = int(target_window_ms / (1000 / fps))
+
+    #window size must be odd
+    if window_frames % 2 == 0:
+        window_frames += 1
+
+    #adjust based on signal quality
+    if signal_std > 0.5: #noisy bad
+        window_frames = min(window_frames + 2, 11) #larger window -> more smoothing
+        polyorder = 2 #lower order (2 = quadratic) to prevent overfitting bad data
+        dprint(f"Noisy signal, using window = {window_frames}, polyorder/power of the curve = {polyorder}")
+    else: #clean signal good
+        window_frames = max(5, window_frames) #smaller window -> better preserve peaks and troughs
+        polyorder = 3 #cubic
+        dprint(f"Clean signal, using window = {window_frames}, polyorder/power of the curve = {polyorder}")
+
+    if window_frames > n_points:
+        window_frames = n_points if n_points % 2 == 1 else n_points - 1
+        window_frames = max(3, window_frames)
+
+    if window_frames < 5:
+        window_frames = 5
+
+    if polyorder >= window_frames:
+        polyorder = window_frames - 1
+
+    dprint(f"Adaptive parameters: window = {window_frames}, polyorder = {polyorder}")
+
+    #apply smoothing using the library
+    smoothed = savgol_filter(diameters, window_length = window_frames, polyorder = polyorder, mode = 'interp')
+    smoothed_mm = savgol_filter(diameters_mm, window_length = window_frames, polyorder = polyorder, mode = 'interp')
+
+    nan_mask = np.isnan(diameters)
+    smoothed[nan_mask] = np.nan
+    smoothed_mm[nan_mask] = np.nan
+
+    dataframe['diameter'] = smoothed
+    dataframe['diameter_mm'] = smoothed_mm
+
+    return dataframe
+    

@@ -36,7 +36,7 @@ def rollingAverage(dataframe):
 """
 
 
-def savgolSmoothing(dataframe, fps=60):
+def savgolSmoothing(dataframe, fps=60): 
 
     n_points = len(dataframe)
     diameters = dataframe['diameter'].values.copy()
@@ -49,7 +49,7 @@ def savgolSmoothing(dataframe, fps=60):
         diameters_mm = pd.Series(diameters_mm).interpolate(method = 'linear', limit_direction = 'both').values
 
     #calc signal properties
-    signad_std = np.std(diameters_mm)
+    signal_std = np.std(diameters_mm)
     signal_range = np.max(diameters_mm) - np.min(diameters_mm)
 
     #adaptive window size based on fps and signal properties

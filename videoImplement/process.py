@@ -9,7 +9,7 @@ from scripts.preProcessing.thirdPass import madFilter
 from scripts.preProcessing.fourthPassCubicOnly import interpolateData
 from scripts.preProcessing.fifthPass import averagePLRGraphs   
 from scripts.preProcessing.firstPass import confidenceFilter
-from scripts.preProcessing.sixthPass import rollingAverage
+from scripts.preProcessing.sixthPass import savgolSmoothing
 
 # load sample data
 dprint("Loading sample pupil data for testing preprocessing scripts")
@@ -23,7 +23,7 @@ dprint(df1.head())
 
 fps = 30
 
-def doProcessing(df, fps=60, saveBeforeInterpolation=False, savePathBeforeInterpolation=df1Path + "/beforeInterpolation.csv"):
+def doProcessing(df, fps=30, saveBeforeInterpolation=False, savePathBeforeInterpolation=df1Path + "/beforeInterpolation.csv"):
     # first pass
     df = confidenceFilter(df)
     dprint("After first pass (confidenceFilter):")
@@ -62,8 +62,8 @@ def doProcessing(df, fps=60, saveBeforeInterpolation=False, savePathBeforeInterp
     # skipping averagePLRGraphs here as we only have one dataset
 
     # sixth pass
-    df = rollingAverage(df)
-    dprint("After sixth pass (rollingAverage):")
+    df = savgolSmoothing(df, fps=fps)
+    dprint("After sixth pass (savgolSmoothing):")
     dprint(df.head())
 
     if saveBeforeInterpolation: 

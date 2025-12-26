@@ -13,13 +13,15 @@ from scripts.preProcessing.sixthPass import rollingAverage
 
 # load sample data
 dprint("Loading sample pupil data for testing preprocessing scripts")
-df1Path = "../videoImplement/data/PLR_Tuna_R_1280x720_60_2"
+df1Path = "../videoImplement/data/PLR_Tuna_R_1920x1080_30_4"
 #df2Path = "../videoImplement/data/PLR_Tuna_R_1280x720_60_2/firstPass.csv"
 df1 = pd.read_csv(df1Path + "/raw.csv")
 #df2 = pd.read_csv(df2Path)
 
 dprint("Initial data loaded:")
 dprint(df1.head())
+
+fps = 30
 
 def doProcessing(df, fps=60, saveBeforeInterpolation=False, savePathBeforeInterpolation=df1Path + "/beforeInterpolation.csv"):
     # first pass
@@ -71,7 +73,7 @@ def doProcessing(df, fps=60, saveBeforeInterpolation=False, savePathBeforeInterp
 
 
 dprint("Processing first dataset")
-df1_processed = doProcessing(df1, fps=60)
+df1_processed = doProcessing(df1, fps=fps)
 # get stats before interpolation
 #df1_processed, df1_beforeInterpolation, totalPoints, badPoints, badPercentage = doProcessing(df1, fps=60, saveBeforeInterpolation=True, savePathBeforeInterpolation=df1Path + "/beforeInterpolation.csv")
 #dprint(f"Before interpolation - Total data points: {totalPoints}, Bad data points: {badPoints}, Bad percentage: {badPercentage:.2f}%")

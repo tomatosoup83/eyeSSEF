@@ -109,7 +109,7 @@ def madFilter(df):
             immediate_neighbours.append(diameters[i + 1])
 
         is_isolated_spike = False
-        if len(immediate_neighbours) >= 1:
+        if len(immediate_neighbours) >= 2:
             #check if current pt is very different from its immediate neighbours
             avg_neighbour = np.mean(immediate_neighbours)
             neighbour_threshold = 2 * scaled_mad #stricter threshold for immediate neighbours

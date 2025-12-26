@@ -19,7 +19,7 @@ from scipy.interpolate import CubicSpline
 #from scripts.preProcessing.firstPass import preProcessFirstPass
 # make sure later u save the detected images into a folder
 
-pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_640x480_90_6.mp4"
+pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_1920x1080_30_4.mp4"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
 confidenceThresh = 0.75

@@ -11,7 +11,7 @@
 # edge cases: for the first two and last two points, just use available neighbors
 import pandas as pd
 import numpy as np
-from main import dprint
+from scripts.others.util import dprint
 #from scipy.interpolate import CubicSpline
 
 madMultiplier = 2.5

@@ -12,6 +12,8 @@ import shutil
 import datetime
 import scripts.others.splitVideo as splitVideo
 import scripts.detection.ppDetect as ppDetect
+import scripts.others.graph as graph
+import scripts.others.util as util
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.interpolate import CubicSpline
@@ -19,7 +21,7 @@ from scipy.interpolate import CubicSpline
 #from scripts.preProcessing.firstPass import preProcessFirstPass
 # make sure later u save the detected images into a folder
 
-pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_1920x1080_30_4.mp4"
+pathToVideo = "../eyeVids/tuna/PLR_Tuna_R_1920x1080_30_3.mp4"
 pathToLeft = "./videos/left_half.mp4"
 pathToRight = "./videos/right_half.mp4"
 confidenceThresh = 0.75
@@ -31,12 +33,10 @@ pxToMm = 30 # for 1080p
 
 # print stuff with timestamp at the start cuz it looks nice
 # lmao
-def dprint(message):
-    timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-    print(f"[{timestamp}] {message}")
+
 
 def splitEyes(video, left, right, widthThresh):
-    dprint(f"attemping to convert video file '{video} into left and right videos '{left}' and '{right}'")
+    util.dprint(f"attemping to convert video file '{video} into left and right videos '{left}' and '{right}'")
     # Paths
     input_video = video  # path to video
     output_left = left
@@ -48,26 +48,26 @@ def splitEyes(video, left, right, widthThresh):
 
 def resetFolder(folderName):
     if os.path.exists(folderName):
-        dprint(f"folder '{folderName}' exists, removing contents in folder")
+        util.dprint(f"folder '{folderName}' exists, removing contents in folder")
         try:
             shutil.rmtree(folderName)
-            dprint(f"Folder '{folderName}' and all its contents deleted successfully.")
+            util.dprint(f"Folder '{folderName}' and all its contents deleted successfully.")
         except OSError as e:
-            dprint(f"Error: {e}. An error occurred during deletion.")
-        dprint(f"Making new '{folderName}'")
+            util.dprint(f"Error: {e}. An error occurred during deletion.")
+        util.dprint(f"Making new '{folderName}'")
         os.makedirs(folderName)
     else: 
-        dprint(f"Folder '{folderName}' does not exist, making the folder")
+        util.dprint(f"Folder '{folderName}' does not exist, making the folder")
         try:
             os.makedirs(folderName)
         except OSError:
-            dprint(f"Error: Creating folder '{folderName}'")
+            util.dprint(f"Error: Creating folder '{folderName}'")
     return folderName
 
 # split the video into multiple image files
 def videoToImages(video, folderName):
     folderName = str(folderName)
-    dprint(f"Trying to convert video '{video}' into frames and storing into '{folderName}'")
+    util.dprint(f"Trying to convert video '{video}' into frames and storing into '{folderName}'")
     # 2. convert the video into multiple .bmp files and store it in the tempImages folder
     cam = cv2.VideoCapture(video)
     currentframe = 0
@@ -78,7 +78,7 @@ def videoToImages(video, folderName):
         if ret:
             #name = './frames/' + folderName +'/frame' + str(currentframe) + '.bmp'
             name = os.path.join(folderName, 'frame' + str(currentframe) + '.bmp')
-            dprint("Creating... " + name)
+            util.dprint("Creating... " + name)
 
             cv2.imwrite(name, frame)
 
@@ -88,14 +88,14 @@ def videoToImages(video, folderName):
 
     cam.release()
     cv2.destroyAllWindows()    
-    dprint("All frames done!")
+    util.dprint("All frames done!")
 
     return frameRate, currentframe
 
     # 3. turn images ito grayscale (actually i think this is part of the algorithm but meh)
     
 def pupilDetectionInFolder(folderPath):
-    dprint(f"Starting pupil detection in folder '{folderPath}'")
+    util.dprint(f"Starting pupil detection in folder '{folderPath}'")
     conf = []
     diameter = []
     for i in range(len(os.listdir(folderPath))):
@@ -105,7 +105,7 @@ def pupilDetectionInFolder(folderPath):
         
         conf.append(outline_confidence)
         diameter.append(pupil_diameter)
-        dprint(f"Showing image {newPath} with detected pupil...")
+        util.dprint(f"Showing image {newPath} with detected pupil...")
         # show the images continuously using cv2 window
         cv2.imshow("Pupil Detection for " + pathToVideo, imgWithPupil)
         cv2.waitKey(1)  # Display each image for 1 ms
@@ -141,45 +141,16 @@ def saveDataToCSV(frameIDs, timestamps, diameters, confidences, outputPath):
     df['is_bad_data'] = df['confidence'] < confidenceThresh
     df['diameter_mm'] = df['diameter'] / pxToMm
     df.to_csv(outputPath, index=False)
-    dprint(f"Data saved to CSV at '{outputPath}'")
+    util.dprint(f"Data saved to CSV at '{outputPath}'")
     
     # return the pandas dataframe too if needed
     return df
-def plotResults(dataframe, savePath=None, showPlot=True, showMm=False):
-    # clear previous plots
-    plt.clf()
-    # plot data based on dataframe
-    plt.figure("Showing results for " + str(savePath),figsize=(12, 6))
-    plt.subplot(2, 1, 1)
-    if showMm:
-        plt.plot(dataframe['timestamp'], dataframe['diameter_mm'], label='Pupil Diameter (mm)', color='blue')
-        plt.ylabel('Diameter (mm)')
-    else:
-        plt.plot(dataframe['timestamp'], dataframe['diameter'], label='Pupil Diameter (pixels)', color='blue')
-        plt.ylabel('Diameter (pixels)')
-    plt.xlabel('Time (s)')
-    plt.title('Pupil Diameter Over Time')
-    plt.legend()
-    
-    plt.subplot(2, 1, 2)
-    plt.plot(dataframe['timestamp'], dataframe['confidence'], label='Confidence', color='green')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Confidence')
-    plt.title('Detection Confidence Over Time')
-    plt.legend()
-    
-    plt.tight_layout()
-    if savePath:
-        plt.savefig(savePath)
-        dprint(f"Plot saved to '{savePath}'")
-    if showPlot:
-        plt.show()
 
 
 
 
 def generateReport():
-    dprint("Running standalone pupil detection implementation...")
+    util.dprint("Running standalone pupil detection implementation...")
     resetFolder("videos")
     #splitEyes(pathToVideo, pathToLeft, pathToRight, 600)
     resetFolder("frames")
@@ -200,7 +171,7 @@ def generateReport():
     csvDataPath = "data/" + os.path.basename(pathToVideo).split('.')[0] + "/raw.csv"
     df = saveDataToCSV(list(range(totalFrames)), timestamps, diameter, conf, csvDataPath)
     print(("Average pupil diameter (pixels): ", getAverageOfColumn(df, 'diameter')))
-    plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=True, showMm=True)
+    graph.plotResults(df, savePath=dataFolderPath + "/rawPlot.png", showPlot=True, showMm=True)
 
     # first pass preprocessing
     #df = preProcessFirstPass(df)

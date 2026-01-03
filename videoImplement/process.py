@@ -1,7 +1,7 @@
 # load a pupil csv data and then test them with the preprocessing scripts
 import os
 import pandas as pd
-from main import dprint, confidenceThresh, pxToMm, plotResults
+from main import confidenceThresh, pxToMm
 from scripts.preProcessing.secondPass import removeSusBio
 from scripts.preProcessing.thirdPass import madFilter
 #from scripts.preProcessing.fourthPass import interpolateData
@@ -10,10 +10,12 @@ from scripts.preProcessing.fourthPassCubicOnly import interpolateData
 from scripts.preProcessing.fifthPass import averagePLRGraphs   
 from scripts.preProcessing.firstPass import confidenceFilter
 from scripts.preProcessing.sixthPass import savgolSmoothing
+from scripts.others.util import dprint
+import scripts.others.graph as graph
 
 # load sample data
 dprint("Loading sample pupil data for testing preprocessing scripts")
-df1Path = "../videoImplement/data/PLR_Tuna_R_1920x1080_30_4"
+df1Path = "../videoImplement/data/PLR_Tuna_R_1920x1080_30_3"
 #df2Path = "../videoImplement/data/PLR_Tuna_R_1280x720_60_2/firstPass.csv"
 df1 = pd.read_csv(df1Path + "/raw.csv")
 #df2 = pd.read_csv(df2Path)
@@ -85,12 +87,11 @@ dprint(f"Processed data saved to CSV at '{csvPreprocessedPath}'")
 
 # plotting results
 dataFolderPath = "data/" + os.path.basename(df1Path).split('.')[0]
-plotResults(df1_processed, savePath=dataFolderPath + "/processedPlot.png", showPlot=True, showMm=True)
+graph.plotResults(df1_processed, savePath=dataFolderPath + "/processedPlot.png", showPlot=True, showMm=True)
 
 # plot non interpolated data for comparison
 #dataFolderPath = "data/" + os.path.basename(df1Path).split('.')[0]
-#plotResults(df1_beforeInterpolation, savePath=dataFolderPath + "/beforeInterpolationPlot.png", showPlot=True, showMm=True)
-
+#graph.plotResults(df1_beforeInterpolation, savePath=dataFolderPath + "/beforeInterpolationPlot.png", showPlot=True, showMm=True)
 #dprint("Processing second dataset")
 #df2_processed = doProcessing(df2, fps=30)
 

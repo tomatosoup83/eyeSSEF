@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.interpolate import CubicSpline, interp1d
-from main import dprint
+from scripts.others.util import dprint
 
 def linear_interpolation(df: pd.DataFrame, fps=60, max_gap_ms=400): #max 500ms
     df_interp = df.copy()

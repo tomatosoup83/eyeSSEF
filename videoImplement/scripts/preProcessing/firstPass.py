@@ -1,4 +1,4 @@
-from main import dprint
+from scripts.others.util import dprint
 
 confidenceThresh = 0.75  # threshold for confidence filtering
 

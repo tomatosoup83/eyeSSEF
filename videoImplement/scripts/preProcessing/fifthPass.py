@@ -1,7 +1,8 @@
 # fifth pass: average the 2 PLR graphs from the same eye of a person
 import pandas as pd
 import numpy as np
-from main import dprint, pxToMm
+from main import pxToMm
+from scripts.others.util import dprint
 
 def averagePLRGraphs(df1, df2):
     dprint("Fifth pass preprocessing: averaging two PLR graphs")

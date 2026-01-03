@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from main import dprint
+from scripts.others.util import dprint
 from scipy.signal import savgol_filter
 
 """

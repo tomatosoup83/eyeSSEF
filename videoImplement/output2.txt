@@ -1,0 +1,57 @@
+[19:48:01] Loading processed data for PLR metrics calculation
+ 
+--------------------- BLUE LIGHT METRICS CALCULATION -----------------
+[19:48:01] Calculating PLR metrics for blue light stimuli
+[19:48:01] Lowest dip found at index 109 with diameter 4.055238095238095 mm at time 3.6333333333333337 s
+[19:48:01] Baseline onset approximated at index 64 with diameter 5.798571428571428 mm at time 2.1333333333333333 s
+[19:48:01] PLR start found at index 80 with diameter 5.806666666666667 mm at time 2.6666666666666665 s
+[19:48:01] Time difference between onset and dip: 0.9666666666666667 seconds
+[19:48:01] New Baseline onset approximated at index 20 with diameter 5.536190476190476 mm at time 0.6666666666666666 s
+[19:48:01] Recovery point approximated at index 310 with diameter 5.744761904761905 mm at time 10.333333333333334 s
+[19:48:01] End point approximated at index 1159 with diameter 5.866666666666666 mm at time 38.63333333333333 s
+[19:48:01] Collected PLR segment from index 20 to 1159, total 1140 points.
+[19:48:01] First few rows of PLR segment dataframe:
+   timestamp  diameter_mm    diameter
+0  -2.000000     5.536190  166.085714
+1  -1.966667     5.499048  164.971429
+2  -1.933333     5.431429  162.942857
+3  -1.900000     5.397143  161.914286
+4  -1.866667     5.433333  163.000000
+[19:48:01] New Baseline diameter calculated as 5.724126984126983 mm from index 35 to 79
+[19:48:01] Lowest dip diameter: 4.055238095238095 mm
+ 
+[19:48:01] Calculated Metrics:
+[19:48:01] Baseline Average Diameter: 5.724126984126983 mm
+[19:48:01] Transient PLR: 29.155343574954234 %
+[19:48:01] Constriction Velocity: 1.7264367816091932 mm/s
+[19:48:01] Peak Constriction Diameter: 4.055238095238095 mm (29.155343574954234 % of baseline)
+[19:48:02] Plot saved to '../videoImplement/data/PLR_Tuna_R_1920x1080_30_4/plrSegmentPlotBlue.png'
+[19:48:03] Blue Light Stimuli: Baseline Diameter = 5.724126984126983 mm, TPLR Start Index = 80, Dip Index = 109
+ 
+--------------------- RED LIGHT METRICS CALCULATION -----------------
+[19:48:03] Calculating PLR metrics for red light stimuli
+[19:48:03] Lowest dip found at index 1749 with diameter 4.826666666666666 mm at time 58.3 s
+[19:48:03] Baseline onset approximated at index 1704 with diameter 6.093333333333334 mm at time 56.8 s
+[19:48:03] PLR start found at index 1733 with diameter 6.173333333333334 mm at time 57.766666666666666 s
+[19:48:03] Time difference between onset and dip: 0.5333333333333333 seconds
+[19:48:03] New Baseline onset approximated at index 1673 with diameter 6.160952380952382 mm at time 55.766666666666666 s
+[19:48:03] Recovery point approximated at index 1950 with diameter 5.920000000000001 mm at time 65.0 s
+[19:48:03] End point approximated at index 2799 with diameter 6.094285714285714 mm at time 93.3 s
+[19:48:03] Collected PLR segment from index 1673 to 2799, total 1127 points.
+[19:48:03] First few rows of PLR segment dataframe:
+   timestamp  diameter_mm    diameter
+0  -2.000000     6.160952  184.828571
+1  -1.966667     6.178095  185.342857
+2  -1.933333     6.135238  184.057143
+3  -1.900000     6.095238  182.857143
+4  -1.866667     6.156190  184.685714
+[19:48:03] New Baseline diameter calculated as 6.174476190476191 mm from index 1688 to 1732
+[19:48:03] Lowest dip diameter: 4.826666666666666 mm
+ 
+[19:48:03] Calculated Metrics:
+[19:48:03] Baseline Average Diameter: 6.174476190476191 mm
+[19:48:03] Transient PLR: 21.82872655478777 %
+[19:48:03] Constriction Velocity: 2.5271428571428673 mm/s
+[19:48:03] Peak Constriction Diameter: 4.826666666666666 mm (21.82872655478777 % of baseline)
+[19:48:03] Plot saved to '../videoImplement/data/PLR_Tuna_R_1920x1080_30_4/plrSegmentPlotRed.png'
+[19:48:03] Red Light Stimuli: Baseline Diameter = 6.174476190476191 mm, TPLR Start Index = 1733, Dip Index = 1749

@@ -35,6 +35,9 @@ import scripts.others.util as util
 # -----------------
 
 DEFAULT_CONFIDENCE_THRESH = 0.75
+
+confidenceThresh = DEFAULT_CONFIDENCE_THRESH  # backwards-compat alias for older scripts
+
 DEFAULT_PX_TO_MM = 30  # for 1080p in the team's calibration
 
 

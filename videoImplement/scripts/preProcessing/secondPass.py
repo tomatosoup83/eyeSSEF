@@ -7,7 +7,10 @@
 # also check and remove if pupil diameter is above 9mm and below 2mm
 import pandas as pd
 import numpy as np
-from main import confidenceThresh
+try:
+    from main import confidenceThresh  # provided by main.py
+except Exception:
+    confidenceThresh = 0.75  # fallback
 from scripts.others.util import dprint
 
 def removeSusBio(df, fps):

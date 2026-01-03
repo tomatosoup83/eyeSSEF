@@ -1,5 +1,4 @@
-/videoImplement/frames
-/videoImplement/videos
-/videoImplement/OpenCVTester.py 
-/eyeVids/
-videoImplement/__pycache__/
+.DS_Store
+.venv/
+output.txt
+videoImplement.zip

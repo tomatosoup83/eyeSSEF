@@ -34,15 +34,36 @@ def linear_interpolation(df: pd.DataFrame, fps=60, max_gap_ms=400): #max 500ms
                         before_idx = start - 1
                         after_idx = end + 1
 
+                        if before_idx < 0:  # Gap at start (no before value)
+                            if after_idx < n and not np.isnan(values[after_idx]):
+                                after_val = values[after_idx]
+                                for j in range(start, end + 1):
+                                    values[j] = after_val  # Constant fill with after
+                                i = end + 1
+                                continue
+                            else:    
+                                i = end + 1
+                            continue
+                        elif after_idx >= n:  
+                            if before_idx >= 0 and not np.isnan(values[before_idx]):
+                                before_val = values[before_idx]
+                                for j in range(start, end + 1):
+                                    values[j] = before_val  
+                                i = end + 1
+                                continue
+                            else:
+                                i = end + 1
+                                continue
+                                
                         if before_idx >= 0 and after_idx < n:
                             if not np.isnan(values[before_idx]) and not np.isnan(values[after_idx]):
                                 before_val = values[before_idx]
                                 after_val = values[after_idx]
 
                                 for j in range(start, end + 1):
-                                    t = (j - before_idx) / (after_idx - before_idx)
+                                    t = max(0, min(1, (j - before_idx) / (after_idx - before_idx)))
                                     values[j] = (1 - t) * before_val + t * after_val
-
+                                    
                                 dprint(f"Frames {start} - {end}: Linear interpolated {gap_duration_ms}")
                                 # advance past this gap
                                 i = end + 1
@@ -62,10 +83,6 @@ def linear_interpolation(df: pd.DataFrame, fps=60, max_gap_ms=400): #max 500ms
                 else:
                     i += 1
 
-        # Apply pandas interpolation with an explicit frame limit to enforce time cap
-        df_temp = pd.DataFrame({col: values})
-        df_temp[col] = df_temp[col].interpolate(method='linear', limit=N_max, limit_direction='both')
-        values = df_temp[col].values
 
         df_interp[col] = values
 

@@ -6,7 +6,7 @@ from scripts.preProcessing.secondPass import removeSusBio
 from scripts.preProcessing.thirdPass import madFilter
 #from scripts.preProcessing.fourthPass import interpolateData
 #from scripts.preProcessing.fourthPassNoBoundaryCheck import interpolateData
-from scripts.preProcessing.fourthPassCubicOnly import interpolateData
+from videoImplement.scripts.preProcessing.fourthPassLinear import interpolateData
 from scripts.preProcessing.fifthPass import averagePLRGraphs   
 from scripts.preProcessing.firstPass import confidenceFilter
 from scripts.preProcessing.sixthPass import savgolSmoothing
@@ -15,7 +15,7 @@ import scripts.others.graph as graph
 
 # load sample data
 dprint("Loading sample pupil data for testing preprocessing scripts")
-df1Path = "../videoImplement/data/PLR_Tuna_R_1920x1080_30_3"
+df1Path = "../videoImplement/data/PLR_Tuna_R_1920x1080_30_4"
 #df2Path = "../videoImplement/data/PLR_Tuna_R_1280x720_60_2/firstPass.csv"
 df1 = pd.read_csv(df1Path + "/raw.csv")
 #df2 = pd.read_csv(df2Path)
@@ -64,7 +64,7 @@ def doProcessing(df, fps=30, saveBeforeInterpolation=False, savePathBeforeInterp
     # skipping averagePLRGraphs here as we only have one dataset
 
     # sixth pass
-    df = savgolSmoothing(df, fps=fps)
+    df = savgolSmoothing(df, fps=fps, target_window_ms=150)
     dprint("After sixth pass (savgolSmoothing):")
     dprint(df.head())
 

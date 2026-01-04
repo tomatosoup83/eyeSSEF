@@ -2,8 +2,8 @@
 
 Why:
 - You run the algorithm on the laptop (not on the Pi)
-- The Pi drops .mp4 recordings into the inbox (via scp/Syncthing/SMB etc.)
-- We process one file at a time (simple, avoids folder collisions)
+- The Pi drops .mp4 recordings into the inbox (via rsync)
+- We process one file at a time (simple)
 
 This script calls:
   videoImplement/main.py       -> creates data/<session>/raw.csv + meta.json

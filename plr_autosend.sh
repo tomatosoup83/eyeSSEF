@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SRC_DIR="/home/[username]/PLR_Video"
+SRC_DIR="/home/anton/PLR_Video"
 
 MAC_USER="ptrckhanzel"
 MAC_HOST="172.20.10.4"   # <-- put ur mac ip here bro

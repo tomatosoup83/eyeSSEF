@@ -6,7 +6,7 @@ from scripts.preProcessing.secondPass import removeSusBio
 from scripts.preProcessing.thirdPass import madFilter
 #from scripts.preProcessing.fourthPass import interpolateData
 #from scripts.preProcessing.fourthPassNoBoundaryCheck import interpolateData
-from videoImplement.scripts.preProcessing.fourthPassLinear import interpolateData
+from scripts.preProcessing.fourthPassLinear import interpolateData
 from scripts.preProcessing.fifthPass import averagePLRGraphs   
 from scripts.preProcessing.firstPass import confidenceFilter
 from scripts.preProcessing.sixthPass import savgolSmoothing

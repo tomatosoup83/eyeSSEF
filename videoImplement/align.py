@@ -5,6 +5,7 @@
 # approximation of data points: 3s baseline - 0.25s blue - 60s rest - 0.25s red - 60s rest (might vary cuz fps)
 # maybe can add a bit of buffer time to be safe
 import pandas as pd
+import numpy as np
 
 import scripts.others.util as util
 import scripts.others.graph as graph
@@ -47,7 +48,7 @@ def findBaseline(dipIndex, fps=vidFps):
 
 
 # find start of transient PLR as the first point where the difference between this point and the next point exceeds a threshold
-def findTPLRStart(baselineIndex, dipIndex, fps=vidFps, changeThresh=0.2):
+def findTPLRStart(baselineIndex, dipIndex, startIndexBuffer=1, fps=vidFps, changeThresh=0.2):
     diameterMM = df['diameter_mm'].values
     timestamp = df['timestamp'].values
 
@@ -56,6 +57,8 @@ def findTPLRStart(baselineIndex, dipIndex, fps=vidFps, changeThresh=0.2):
         if not pd.isna(diameterMM[i]) and not pd.isna(diameterMM[i + 1]):
             change = abs(diameterMM[i + 1] - diameterMM[i])
             if change > maxChange:
+                # set the resulting point to be buffer point before the detected change to better approximate the start
+                i = max(baselineIndex, i - startIndexBuffer)
                 util.dprint(f"PLR start found at index {i} with diameter {diameterMM[i]} mm at time {timestamp[i]} s")
                 return i
 
@@ -149,7 +152,7 @@ def collectPLRSegment(baselineIndex, endPoint, plrStartIndex, fps=vidFps, ):
 def findPoints(startingIndex):
     dipIndex = lowestDip(startingIndex)
     baselineIndex = findBaseline(dipIndex)
-    TPLRStartIndex = findTPLRStart(baselineIndex, dipIndex)
+    TPLRStartIndex = findTPLRStart(baselineIndex, dipIndex, startIndexBuffer=7)
     timeDiff = findDifference(TPLRStartIndex, dipIndex)
 
     baselineIndex = findNewBaselineIndex(TPLRStartIndex)
@@ -177,19 +180,41 @@ def calculateMetrics(baselineDiameter, TPLRStartIndex, dipIndex, baselineIndex, 
     constrictionVelocity = (baselineDiameter - lowestDipDiameter) / timeToDipSeconds if timeToDipSeconds > 0 else 0
 
     peakConstrictionPercentage = ((baselineDiameter - lowestDipDiameter) / baselineDiameter) * 100.0
+    
+    # Calculate area under curve between 10s and 30s
+    # Normalize pupil diameter as percentage from baseline (100% = baseline)
+    mask_10_30 = (timestamp >= 10.0) & (timestamp <= 30.0)
+    timestamps_10_30 = timestamp[mask_10_30]
+    diameters_10_30 = diameterMM[mask_10_30]
+    
+    if len(timestamps_10_30) > 0:
+        # Normalize to percentage (baseline = 100%)
+        normalized_diameters = (diameters_10_30 / baselineDiameter) * 100.0
+        
+        # Calculate AUC using trapezoidal rule
+        auc_10_30 = np.trapz(normalized_diameters, timestamps_10_30)
+        util.dprint(f"Area Under Curve (10s-30s, normalized): {auc_10_30} %·s")
+    else:
+        auc_10_30 = 0
+        util.dprint("No data points found between 10s and 30s for AUC calculation")
+    
     print(" ")
     util.dprint(f"Calculated Metrics:")
     util.dprint(f"Baseline Average Diameter: {baselineDiameter} mm")
     util.dprint(f"Transient PLR: {transientPLR} %")
     util.dprint(f"Constriction Velocity: {constrictionVelocity} mm/s")
     util.dprint(f"Peak Constriction Diameter: {lowestDipDiameter} mm ({peakConstrictionPercentage} % of baseline)")
+    util.dprint(f"Area Under Curve (10s-30s): {auc_10_30} %·s")
 
+
+    
     return {
         'baseline_diameter_mm': baselineDiameter,
         'transient_plr_percent': transientPLR,
         'constriction_velocity_mm_per_s': constrictionVelocity,
         'peak_constriction_diameter_mm': lowestDipDiameter,
-        'peak_constriction_percent': peakConstrictionPercentage
+        'peak_constriction_percent': peakConstrictionPercentage,
+        'auc_10_30s_percent_seconds': auc_10_30
     }
 
 
@@ -211,3 +236,8 @@ redBaselineDiameter, redTPLRStartIndex, redDipIndex, redBaselineIndex, redPLRDF 
 redMetrics = calculateMetrics(redBaselineDiameter, redTPLRStartIndex, redDipIndex, redBaselineIndex, redPLRDF)
 graph.plotResults(redPLRDF, savePath=df1Path + "plrSegmentPlotRed.png", showPlot=True, showMm=True, showConfidence=False, title="PLR Segment - Red Light Stimuli")
 util.dprint(f"Red Light Stimuli: Baseline Diameter = {redBaselineDiameter} mm, TPLR Start Index = {redTPLRStartIndex}, Dip Index = {redDipIndex}")
+
+# calculate net pipr as the difference between blue auc and red auc
+print(" ")
+netPIPR = blueMetrics['auc_10_30s_percent_seconds'] - redMetrics['auc_10_30s_percent_seconds']
+util.dprint(f"Net PIPR (Blue AUC - Red AUC): {netPIPR} %·s")

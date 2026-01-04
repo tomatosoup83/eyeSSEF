@@ -1,0 +1,63 @@
+[14:11:34] Loading processed data for PLR metrics calculation
+ 
+--------------------- BLUE LIGHT METRICS CALCULATION -----------------
+[14:11:34] Calculating PLR metrics for blue light stimuli
+[14:11:34] Lowest dip found at index 108 with diameter 4.073333333333332 mm at time 3.6 s
+[14:11:34] Baseline onset approximated at index 63 with diameter 5.793333333333332 mm at time 2.1 s
+[14:11:34] PLR start found at index 80 with diameter 5.639999999999999 mm at time 2.6666666666666665 s
+[14:11:34] Time difference between onset and dip: 0.9333333333333333 seconds
+[14:11:34] New Baseline onset approximated at index 20 with diameter 5.536190476190476 mm at time 0.6666666666666666 s
+[14:11:34] Recovery point approximated at index 309 with diameter 5.749999999999999 mm at time 10.3 s
+[14:11:34] End point approximated at index 1158 with diameter 5.883333333333332 mm at time 38.6 s
+[14:11:34] Collected PLR segment from index 20 to 1158, total 1139 points.
+[14:11:34] First few rows of PLR segment dataframe:
+   timestamp  diameter_mm    diameter
+0  -2.000000     5.536190  166.085714
+1  -1.966667     5.499048  164.971429
+2  -1.933333     5.431429  162.942857
+3  -1.900000     5.397143  161.914286
+4  -1.866667     5.433333  163.000000
+[14:11:34] New Baseline diameter calculated as 5.724444444444444 mm from index 35 to 79
+[14:11:34] Lowest dip diameter: 4.073333333333332 mm
+[14:11:34] Area Under Curve (10s-30s, normalized): 2044.7648624667254 %·s
+ 
+[14:11:34] Calculated Metrics:
+[14:11:34] Baseline Average Diameter: 5.724444444444444 mm
+[14:11:34] Transient PLR: 28.843167701863365 %
+[14:11:34] Constriction Velocity: 1.7690476190476192 mm/s
+[14:11:34] Peak Constriction Diameter: 4.073333333333332 mm (28.843167701863365 % of baseline)
+[14:11:34] Area Under Curve (10s-30s): 2044.7648624667254 %·s
+[14:11:34] Plot saved to '../videoImplement/data/PLR_Tuna_R_1920x1080_30_4/plrSegmentPlotBlue.png'
+[14:11:36] Blue Light Stimuli: Baseline Diameter = 5.724444444444444 mm, TPLR Start Index = 80, Dip Index = 108
+ 
+--------------------- RED LIGHT METRICS CALCULATION -----------------
+[14:11:36] Calculating PLR metrics for red light stimuli
+[14:11:36] Lowest dip found at index 1748 with diameter 4.889999999999999 mm at time 58.266666666666666 s
+[14:11:36] Baseline onset approximated at index 1703 with diameter 6.13904761904762 mm at time 56.766666666666666 s
+[14:11:36] PLR start found at index 1731 with diameter 6.166666666666665 mm at time 57.7 s
+[14:11:36] Time difference between onset and dip: 0.5666666666666667 seconds
+[14:11:36] New Baseline onset approximated at index 1671 with diameter 6.126666666666666 mm at time 55.7 s
+[14:11:36] Recovery point approximated at index 1949 with diameter 5.913333333333332 mm at time 64.96666666666667 s
+[14:11:36] End point approximated at index 2798 with diameter 6.089999999999999 mm at time 93.26666666666668 s
+[14:11:36] Collected PLR segment from index 1671 to 2798, total 1128 points.
+[14:11:36] First few rows of PLR segment dataframe:
+   timestamp  diameter_mm  diameter
+0  -2.000000     6.126667     183.8
+1  -1.966667     6.146667     184.4
+2  -1.933333     6.146667     184.4
+3  -1.900000     6.140000     184.2
+4  -1.866667     6.140000     184.2
+[14:11:36] New Baseline diameter calculated as 6.174825396825395 mm from index 1686 to 1730
+[14:11:36] Lowest dip diameter: 4.889999999999999 mm
+[14:11:36] Area Under Curve (10s-30s, normalized): 1931.5829250361176 %·s
+ 
+[14:11:36] Calculated Metrics:
+[14:11:36] Baseline Average Diameter: 6.174825396825395 mm
+[14:11:36] Transient PLR: 20.807477365853153 %
+[14:11:36] Constriction Velocity: 2.267338935574244 mm/s
+[14:11:36] Peak Constriction Diameter: 4.889999999999999 mm (20.807477365853153 % of baseline)
+[14:11:36] Area Under Curve (10s-30s): 1931.5829250361176 %·s
+[14:11:36] Plot saved to '../videoImplement/data/PLR_Tuna_R_1920x1080_30_4/plrSegmentPlotRed.png'
+
+[14:11:38] Red Light Stimuli: Baseline Diameter = 6.174825396825395 mm, TPLR Start Index = 1731, Dip Index = 1748
+[14:11:38] Net PIPR (Blue AUC - Red AUC): 113.18193743060783 %·s

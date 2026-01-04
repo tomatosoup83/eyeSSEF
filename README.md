@@ -11,6 +11,7 @@ make a plr_inbox folder on user on mac then just go to the eyessef_modified, in 
 cd "/Users/ptrckhanzel/Documents/SSEF Related/eyeSSEF_modified"
 python ./tools/watch_inbox.py \
   --inbox "/Users/ptrckhanzel/plr_inbox" \
-  --repo "/Users/ptrckhanzel/Documents/SSEF Related/eyeSSEF_modified"```
+  --repo "/Users/ptrckhanzel/Documents/SSEF Related/eyeSSEF_modified"
+  ```
 
 whenever there's a video let's say from the Pi to the plr_inbox it will automatically process the thing
